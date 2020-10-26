@@ -126,8 +126,8 @@
     private HubConnection hub;
     private List<User> users = new();
     private List<Activity> activities = new();
-    private List<DateTime> currentWeek = new();
-    private int currentWeekNumber => ISOWeek.GetWeekOfYear(currentWeek.FirstOrDefault());
+    private List<DateTimeOffset> currentWeek = new();
+    private int currentWeekNumber => ISOWeek.GetWeekOfYear(currentWeek.FirstOrDefault().DateTime);
     private int currentYear => currentWeek.FirstOrDefault().Year;
     private Activity activity = new();
     protected override async Task OnInitializedAsync()

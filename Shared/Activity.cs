@@ -13,7 +13,7 @@ namespace TeamPlanner.Shared
         {
             User = user;
         }
-        public DateTime DateTime { get; set; }
+        public DateTimeOffset DateTime { get; set; }
         public string Client { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }

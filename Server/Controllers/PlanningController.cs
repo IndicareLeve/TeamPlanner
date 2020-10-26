@@ -35,14 +35,19 @@ namespace TeamPlanner.Server.Controllers
         [HttpGet("users/{teamName?}")]
         public async Task<IEnumerable<User>> GetUsers(string? teamName = null)
         {
-            var users = await _db.GetCollection<User>("Users").FindAsync(new BsonDocument());
-            return await users.ToListAsync();
+            var cursor = await _db.GetCollection<User>("Users").FindAsync(new BsonDocument());
+            var users = await cursor.ToListAsync();
+            
+            if (teamName != null)
+                return users.Where(u => u.Team.Equals(teamName, StringComparison.InvariantCultureIgnoreCase));
+
+            return users;
         }
 
         [HttpGet("activities/{year}/{week}/{teamName?}")]
         public async Task<IEnumerable<Activity>> GetActivities(int year, int week, string? teamName = null)
         {
-            var weekEnd = ISOWeek.ToDateTime(year, week, DayOfWeek.Sunday);
+            var weekEnd = new DateTimeOffset(ISOWeek.ToDateTime(year, week, DayOfWeek.Sunday));
             var weekEndFilter = Builders<Activity>.Filter.Lte(a => a.DateTime, weekEnd);
             var weekStart = weekEnd.Subtract(TimeSpan.FromDays(6));
             var startWeekFilter = Builders<Activity>.Filter.Gte(a => a.DateTime, weekStart);

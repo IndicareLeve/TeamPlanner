@@ -6,10 +6,12 @@
 
 <AuthorizeView>
     <Authorized>
-        Hello, @(context.User.IsInRole("TeamLeader") ? "TeamLeader" : "User") @context.User.Identity.Name!
-        <button class="nav-link btn btn-link" @onclick="BeginLogout">
-            Log out
-        </button>
+        <div class="d-flex align-items-center">
+            <div>@(context.User.IsInRole("TeamLeader") ? "TL" : "") @context.User.Identity.Name</div>
+            <button class="nav-link btn btn-link" @onclick="BeginLogout">
+                Log out
+            </button>
+        </div>
     </Authorized>
     <NotAuthorized>
         <a href="authentication/login">Log in</a>

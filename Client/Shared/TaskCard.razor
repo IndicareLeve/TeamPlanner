@@ -1,15 +1,22 @@
-<div class="card m-0">
-    <div class="card-header d-flex justify-content-between">
-        <div>@Client</div>
-        <div>@Estimate h</div>
+<div class="card m-1">
+    <div class="card-header d-flex justify-content-between p-2">
+        <div class="mr-2">@Client</div>
+        <div>@(Estimate)h</div>
     </div>
-    @* <div class="card-body m-0">
-        <h6 class="card-title">Sviluppo</h6>
-    </div> *@
+    @if (Extended)
+    {
+        <div class="card-body p-2">
+            <h6 class="card-subtitle">@Name</h6>
+        </div>
+    }
 </div>
 
 @code {
     [Parameter] public string Client {get;set;}
     [Parameter] public float Estimate {get;set;}
+    [Parameter] public bool Extended {get;set;} = false;
+    [Parameter] public string Name {get;set;}
+    [Parameter] public string Description {get;set;}
+
 
 }
