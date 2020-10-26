@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
 using TeamPlanner.Server.Hubs;
+using MongoDB.Driver;
+using Microsoft.Identity.Web;
 
 namespace TeamPlanner.Server
 {
@@ -30,8 +32,16 @@ namespace TeamPlanner.Server
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                     new[] { "application/octet-stream" }
-                    );
+                );
             });
+
+            services.AddSingleton(func =>
+            {
+                var client = new MongoClient(Configuration["MongoDb:ConnectionString"]);
+                return client.GetDatabase(Configuration["MongoDb:DatabaseName"]);
+            });
+
+            services.AddMicrosoftIdentityWebApiAuthentication(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,12 +66,15 @@ namespace TeamPlanner.Server
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
                 endpoints.MapHub<ChatHub>("/chathub");
+                endpoints.MapHub<PlanningHub>("/planninghub");
                 endpoints.MapFallbackToFile("index.html");
             });
         }

@@ -1,0 +1,164 @@
+@page "/Planning"
+@using TeamPlanner.Shared
+@using System.Globalization
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@attribute [Authorize]
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+
+<div class="card-header d-flex justify-content-between">
+    <h1>Data&AI Planning</h1>
+    <div class="d-flex align-items-end">
+        <button type="button" class="btn btn-primary" @onclick="() => UpdateWorkingWeek(currentWeekNumber - 1, currentYear)">
+            <i class="fas fa-angle-double-left"></i>
+        </button>
+        <div class="mx-2 my-n1">
+            <h4>Week @currentWeekNumber, @currentYear</h4>
+        </div>
+        <button type="button" class="btn btn-primary" @onclick="() => UpdateWorkingWeek(currentWeekNumber + 1, currentYear)">
+            <i class="fas fa-angle-double-right"></i>
+        </button>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Team</th>
+            <th>User</th>
+            @foreach (var day in currentWeek)
+            {
+                <th>@day.ToString("ddd dd MMM")</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var team in users.GroupBy(u => u.Team))
+        {
+            <tr>
+                <th rowspan="@(team.Count() + 1)">
+                    @team.Key
+
+                </th>
+            </tr>
+            @foreach (var user in users.Where(u => u.Team == team.Key).OrderByDescending(u => u.IsTeamLeader).ThenBy(u => u.FullName))
+            {
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addtask"
+                                @onclick="() => activity = new Activity(user)">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        @user.FullName
+                    </td>
+                    @foreach (var day in currentWeek)
+                    {
+                        <td>
+                            <div class="d-flex">
+                                @foreach (var activity in activities.Where(a => a.DateTime.Date == day && a.User.Email == user.Email))
+                                {
+                                    <TaskCard Client="@activity.Client" Estimate="@activity.Estimate"/>
+                                }
+                            </div>
+                        </td>
+                    }
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="addtask" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <EditForm Model="@activity" OnSubmit="@AddActivity">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Add task for @activity.User.Email</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group form-row">
+                        <div class="col">
+                            <select class="form-control" @bind="activity.DateTime" >
+                                @foreach (var day in currentWeek)
+                                {
+                                    <option value="@day">@day.ToString("ddd dd")</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col">
+                            <input type="text" class="form-control" placeholder="Client" @bind="activity.Client">
+                        </div>
+                    </div>
+                    <div class="form-group form-row">
+                        <div class="col-8">
+                            <input type="text" class="form-control" placeholder="Activity" @bind="activity.Name">
+                        </div>
+                        <div class="col-4">
+                            <input type="number" class="form-control" placeholder="Estimate" @bind="activity.Estimate">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" rows="3" placeholder="Description" @bind="activity.Description"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" @onclick="() => AddActivity()" data-dismiss="modal">Save</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private HubConnection hub;
+    private List<User> users = new();
+    private List<Activity> activities = new();
+    private List<DateTimeOffset> currentWeek = new();
+    private int currentWeekNumber => ISOWeek.GetWeekOfYear(currentWeek.FirstOrDefault().DateTime);
+    private int currentYear => currentWeek.FirstOrDefault().Year;
+    private Activity activity = new();
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Http.GetFromJsonAsync<List<User>>("Planning/Users");
+        activities = await Http.GetFromJsonAsync<List<Activity>>("Planning/Activities");
+        UpdateWorkingWeek(ISOWeek.GetWeekOfYear(DateTime.Today), DateTime.Now.Year);
+
+        hub = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/planninghub"))
+            .Build();
+
+        hub.On<Activity>("ReceiveTask", (activity) =>
+        {
+            activities.Add(activity);
+            activities = activities.OrderBy(a => a.DateTime).ToList();
+            StateHasChanged();
+        });
+
+        await hub.StartAsync();
+    }
+
+    private void UpdateWorkingWeek(int weekNumber, int year)
+    {
+        currentWeek.Clear();
+        foreach (DayOfWeek dayOfWeek in Enum.GetValues(typeof(DayOfWeek)))
+        {
+            if (dayOfWeek is DayOfWeek.Saturday || dayOfWeek is DayOfWeek.Sunday)
+                continue;
+
+            currentWeek.Add(ISOWeek.ToDateTime(year, weekNumber, dayOfWeek));
+        }
+    }
+
+    private async Task AddActivity()
+    {
+        await hub.SendAsync("SendTask", activity);
+        await Http.PostAsJsonAsync("Planning/Activity", activity);
+        
+
+        StateHasChanged();
+    }
+}
