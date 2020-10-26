@@ -9,6 +9,9 @@ using System.Linq;
 using TeamPlanner.Server.Hubs;
 using MongoDB.Driver;
 using Microsoft.Identity.Web;
+using MongoDB.Driver.Core.Events;
+using System;
+using MongoDB.Bson;
 
 namespace TeamPlanner.Server
 {
@@ -37,6 +40,15 @@ namespace TeamPlanner.Server
 
             services.AddSingleton(func =>
             {
+                /* var mongoConnectionUrl = new MongoUrl(Configuration["MongoDb:ConnectionString"]);
+                var mongoClientSettings = MongoClientSettings.FromUrl(mongoConnectionUrl);
+                mongoClientSettings.ClusterConfigurator = cb => {
+                    cb.Subscribe<CommandStartedEvent>(e => {
+                        Console.WriteLine($"{e.CommandName} - {e.Command.ToJson()}");
+                    });
+                };
+                var client = new MongoClient(mongoClientSettings); */
+
                 var client = new MongoClient(Configuration["MongoDb:ConnectionString"]);
                 return client.GetDatabase(Configuration["MongoDb:DatabaseName"]);
             });
@@ -73,7 +85,6 @@ namespace TeamPlanner.Server
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
-                endpoints.MapHub<ChatHub>("/chathub");
                 endpoints.MapHub<PlanningHub>("/planninghub");
                 endpoints.MapFallbackToFile("index.html");
             });

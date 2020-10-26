@@ -25,11 +25,12 @@ namespace TeamPlanner.Client
             builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>()
                 .CreateClient("TeamPlanner.ServerAPI"));
 
-            builder.Services.AddMsalAuthentication(options =>
+            builder.Services.AddMsalAuthentication<RemoteAuthenticationState, CustomUserAccount>(options =>
             {
                 builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
                 options.ProviderOptions.DefaultAccessTokenScopes.Add(builder.Configuration["AzureAD:Scope"]);
-            });
+                options.UserOptions.RoleClaim = "role";
+            }).AddAccountClaimsPrincipalFactory<RemoteAuthenticationState, CustomUserAccount, CustomUserFactory>();
 
             await builder.Build().RunAsync();
         }

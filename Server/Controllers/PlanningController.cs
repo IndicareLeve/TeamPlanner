@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -31,17 +32,24 @@ namespace TeamPlanner.Server.Controllers
             await _db.GetCollection<Activity>("Activities").InsertOneAsync(activity);
             return activity;
         }
-        [HttpGet("users")]
-        public async Task<IEnumerable<User>> GetUsers()
+        [HttpGet("users/{teamName?}")]
+        public async Task<IEnumerable<User>> GetUsers(string? teamName = null)
         {
             var users = await _db.GetCollection<User>("Users").FindAsync(new BsonDocument());
             return await users.ToListAsync();
         }
 
-        [HttpGet("activities")]
-        public async Task<IEnumerable<Activity>> GetActivities(int weekNumber)
+        [HttpGet("activities/{year}/{week}/{teamName?}")]
+        public async Task<IEnumerable<Activity>> GetActivities(int year, int week, string? teamName = null)
         {
-            var cursor = await _db.GetCollection<Activity>("Activities").FindAsync(new BsonDocument());
+            var weekEnd = ISOWeek.ToDateTime(year, week, DayOfWeek.Sunday);
+            var weekEndFilter = Builders<Activity>.Filter.Lte(a => a.DateTime, weekEnd);
+            var weekStart = weekEnd.Subtract(TimeSpan.FromDays(6));
+            var startWeekFilter = Builders<Activity>.Filter.Gte(a => a.DateTime, weekStart);
+
+            Console.WriteLine($"{year} {week} {weekStart} {weekEnd} {teamName}");
+
+            var cursor = await _db.GetCollection<Activity>("Activities").FindAsync(weekEndFilter & startWeekFilter);
             return await cursor.ToListAsync();
         }
     }

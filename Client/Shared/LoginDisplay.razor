@@ -6,7 +6,7 @@
 
 <AuthorizeView>
     <Authorized>
-        Hello, @GetUserRole() @context.User.Identity.Name!
+        Hello, @(context.User.IsInRole("TeamLeader") ? "TeamLeader" : "User") @context.User.Identity.Name!
         <button class="nav-link btn btn-link" @onclick="BeginLogout">
             Log out
         </button>
@@ -21,11 +21,5 @@
     {
         await SignOutManager.SetSignOutState();
         Navigation.NavigateTo("authentication/logout");
-    }
-
-    private async Task<string> GetUserRole()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        return authState.User.IsInRole("TeamLeader") ? "TeamLeader" : "User";
     }
 }
