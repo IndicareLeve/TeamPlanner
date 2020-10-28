@@ -52,8 +52,6 @@ namespace TeamPlanner.Server.Controllers
             var weekStart = weekEnd.Subtract(TimeSpan.FromDays(6));
             var startWeekFilter = Builders<Activity>.Filter.Gte(a => a.DateTime, weekStart);
 
-            Console.WriteLine($"{year} {week} {weekStart} {weekEnd} {teamName}");
-
             var cursor = await _db.GetCollection<Activity>("Activities").FindAsync(weekEndFilter & startWeekFilter);
             return await cursor.ToListAsync();
         }
