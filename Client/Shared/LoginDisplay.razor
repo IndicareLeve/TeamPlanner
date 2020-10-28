@@ -6,15 +6,15 @@
 
 <AuthorizeView>
     <Authorized>
-        <div class="d-flex align-items-center">
-            <div>@(context.User.IsInRole("TeamLeader") ? "TL" : "") @context.User.Identity.Name</div>
-            <button class="nav-link btn btn-link" @onclick="BeginLogout">
+        <div class="flex items-baseline text-white space-x-2">
+            <div class="px-3 py-2 font-medium">@(context.User.IsInRole("TeamLeader") ? "TL" : "") @context.User.Identity.Name</div>
+            <button class="px-3 py-2 rounded-md font-medium bg-blue-300 text-black-pearl-500" @onclick="BeginLogout">
                 Log out
             </button>
         </div>
     </Authorized>
     <NotAuthorized>
-        <a href="authentication/login">Log in</a>
+        <a class="px-3 py-2 rounded-md font-medium bg-blue-300 text-black-pearl-500" href="authentication/login">Log in</a>
     </NotAuthorized>
 </AuthorizeView>
 

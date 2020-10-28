@@ -1,0 +1,34 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<nav class="bg-black-pearl-500">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <img class="h-8" src="https://www.4ward.it/wp-content/uploads/2020/06/4ward-logo-white-2020.png" alt="4Ward logo">
+                </div>
+            </div>
+            <div>
+                <div class="ml-10 flex items-baseline space-x-4">
+                    <NavLink href="" class="px-3 py-2 rounded-md text-sm font-medium text-blue-300 focus:outline-none focus:text-white focus:bg-blue-700">Home</NavLink>
+                    <NavLink href="planning" class="px-3 py-2 rounded-md text-sm font-medium text-blue-300 focus:outline-none focus:text-white focus:bg-blue-700">Planning</NavLink>
+                    <NavLink href="tasks" class="px-3 py-2 rounded-md text-sm font-medium text-blue-300 focus:outline-none focus:text-white focus:bg-blue-700">Team Tasks</NavLink>
+                </div>
+            </div>
+            <div>
+                <LoginDisplay/>
+            </div>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
