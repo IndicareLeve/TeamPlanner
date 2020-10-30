@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -25,6 +26,8 @@ namespace TeamPlanner.Client
             RemoteAuthenticationUserOptions options)
         {
             var initialUser = await base.CreateUserAsync(account, options);
+            if (initialUser.Identity is null)
+                throw new NullReferenceException();
 
             if (initialUser.Identity.IsAuthenticated)
             {

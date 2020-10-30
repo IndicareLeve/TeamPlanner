@@ -10,9 +10,9 @@
             </div>
             <div>
                 <div class="ml-10 flex items-baseline space-x-4">
-                    <NavLink href="" class="px-3 py-2 rounded-md text-sm font-medium text-blue-300 focus:outline-none focus:text-white focus:bg-blue-700">Home</NavLink>
-                    <NavLink href="planning" class="px-3 py-2 rounded-md text-sm font-medium text-blue-300 focus:outline-none focus:text-white focus:bg-blue-700">Planning</NavLink>
-                    <NavLink href="tasks" class="px-3 py-2 rounded-md text-sm font-medium text-blue-300 focus:outline-none focus:text-white focus:bg-blue-700">Team Tasks</NavLink>
+                    <NavLink href="" class="px-3 py-2 rounded-md text-sm font-medium text-white focus:outline-none focus:text-white focus:bg-blue-700">Home</NavLink>
+                    <NavLink href="planning" class="px-3 py-2 rounded-md text-sm font-medium text-white focus:outline-none focus:text-white focus:bg-blue-700">Planning</NavLink>
+                    <NavLink href="tasks" class="px-3 py-2 rounded-md text-sm font-medium text-white focus:outline-none focus:text-white focus:bg-blue-700">Team Tasks</NavLink>
                 </div>
             </div>
             <div>
@@ -23,12 +23,5 @@
 </nav>
 
 @code {
-    private bool collapseNavMenu = true;
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
 }

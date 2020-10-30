@@ -49,7 +49,7 @@
             @foreach (var team in users.GroupBy(u => u.Team))
             {
                 <tr>
-                    <td rowspan="@(team.Count() + 1)" class="border-b-2">
+                    <td rowspan="@(team.Count() + 1)" class="border-b-2 p-2">
                         @team.Key
                     </td>
                 </tr>
