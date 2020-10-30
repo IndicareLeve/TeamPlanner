@@ -13,55 +13,51 @@
 
 <AuthorizeView>
     <Authorized>
-        <div class="card-header d-flex justify-content-between">
-            <h1>@teamName Tasks</h1>
-            <div class="d-flex align-items-end">
-                <button type="button" class="btn btn-primary" @onclick="() => UpdateWorkingWeek(currentWeekNumber - 1, currentYear)">
-                    <i class="fas fa-angle-double-left"></i>
-                </button>
-                <div class="mx-2 my-n1">
-                    <h4>Week @currentWeekNumber, @currentYear</h4>
+        <header class="bg-white shadow">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between">
+                    <h1 class="text-3xl font-bold leading-tight text-gray-900">
+                        @teamName Tasks
+                    </h1>
+                    @if (!isLoading)
+                    {
+                        <div class="flex space-x-3">
+                            <button type="button" class="" @onclick="() => UpdateWorkingWeek(currentWeekNumber - 1, currentYear)">
+                                <img class="h-4" src="svg/chevron-left.svg">
+                            </button>
+                            <div class="">
+                                <h4 class="text-2xl">Week @currentWeekNumber, @currentYear</h4>
+                            </div>
+                            <button type="button" class="" @onclick="() => UpdateWorkingWeek(currentWeekNumber + 1, currentYear)">
+                                <img class="h-4" src="svg/chevron-right.svg">
+                            </button>
+                        </div>
+                    }
                 </div>
-                <button type="button" class="btn btn-primary" @onclick="() => UpdateWorkingWeek(currentWeekNumber + 1, currentYear)">
-                    <i class="fas fa-angle-double-right"></i>
-                </button>
             </div>
-        </div>
+        </header>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th class="min">User</th>
-                    <th>Tasks</th>
-                </tr>
-            </thead>
-            <tbody>
+        <main>
+            <div class="grid flex grid-cols-2 p-2">
+                <div class="border-b-2 p-2 font-bold">User</div>
+                <div class="border-b-2 p-2 font-bold">Tasks</div>
                 @foreach (var user in users.OrderByDescending(u => u.IsTeamLeader).ThenBy(u => u.FullName))
                 {
-                    <tr>
-                        <td>
-                            <AuthorizeView Roles="TeamLeader">
-                                <Authorized Context="Auth">
-                                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addtask"
-                                    @onclick="() => activity = new Activity(user)">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </Authorized>
-                            </AuthorizeView>
-                            @user.FullName
-                        </td>
-                        <td>
-                            <div class="d-flex">
-                                @foreach (var activity in activities.Where(a => a.User.Email == user.Email))
-                                {
-                                    <TaskCard Client="@activity.Client" Estimate="@activity.Estimate" Extended=true Name="@activity.Name" />
-                                }
-                            </div>
-                        </td>
-                    </tr>
+                    <div class="flex space-x-2 items-center border-b-2 p-2">
+                        <div class="cursor-pointer" @onclick="() => toggleModal(user)">
+                            <img class="h-4" src="svg/plus.svg">
+                        </div>
+                        <div class=""> @user.FullName</div>
+                    </div>
+                    <div class="border-b-2 p-2">
+                        @foreach (var activity in activities.Where(a => a.User.Email == user.Email))
+                        {
+                            <TaskCard Client="@activity.Client" Estimate="@activity.Estimate"/>
+                        }
+                    </div>
                 }
-            </tbody>
-        </table>
+            </div>
+        </main>
     </Authorized>
     <NotAuthorized>
         <p>You are not authorized</p>
@@ -69,49 +65,78 @@
 </AuthorizeView>
 
 <!-- Modal -->
-<div class="modal fade" id="addtask" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <EditForm Model="@activity" OnSubmit="@AddActivity">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Add task for @activity.User.Email</h5>
+@if (isModalOpen)
+{
+    <div class="bg-black bg-opacity-50 absolute inset-0 flex justify-center items-center">
+        <div class="bg-white rounded">
+            <div class="flex justify-between items-center bg-black-pearl-500 text-white rounded-t">
+                <div class="px-2">Add task for @activity.User.Email</div>
+                <div class="bg-blue-300 rounded-tr cursor-pointer" @onclick="() => toggleModal()">
+                    <img class="h-4 m-2" src="svg/x.svg" alt="Dismiss">
                 </div>
-                <div class="modal-body">
-                    <div class="form-group form-row">
-                        <div class="col">
-                            <select class="form-control" @bind="activity.DateTime" >
-                                @foreach (var day in currentWeek)
+            </div>
+            <div>
+                <EditForm class="w-full max-w-xl" Model="@activity" OnSubmit="@AddActivity">
+                    <div class="flex flex-wrap m-6">
+                        <div class="w-full px-3 md:w-1/2 mb-6 md:mb-0">
+                            <label class="block text-black-pearl-500 text-xs font-bold mb-2">
+                                Date
+                            </label>
+                            <div class="relative">
+                                <select @bind="activity.DateTime" class="appearance-none w-full border text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:border-gray-500" >
+                                    @foreach (var day in currentWeek)
                                     {
                                         <option value="@day">@day.ToString("ddd dd")</option>
                                     }
                                 </select>
-                            </div>
-                            <div class="col">
-                                <input type="text" class="form-control" placeholder="Client" @bind="activity.Client">
-                            </div>
-                        </div>
-                        <div class="form-group form-row">
-                            <div class="col-8">
-                                <input type="text" class="form-control" placeholder="Activity" @bind="activity.Name">
-                            </div>
-                            <div class="col-4">
-                                <input type="number" class="form-control" placeholder="Estimate" @bind="activity.Estimate">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <textarea class="form-control" rows="3" placeholder="Description" @bind="activity.Description"></textarea>
+                        <div class="w-full px-3 md:w-1/2">
+                            <label class="block text-black-pearl-500 text-xs font-bold mb-2">
+                                Client
+                            </label>
+                            <input @bind="activity.Client" type="text"
+                                 class="appearance-none w-full border text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:border-gray-500" />
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" @onclick="() => AddActivity()" data-dismiss="modal">Save</button>
+                    <div class="flex flex-wrap m-6">
+                        <div class="w-full px-3 md:w-3/4 mb-6 md:mb-0">
+                            <label class="block text-black-pearl-500 text-xs font-bold mb-2">
+                                Activity
+                            </label>
+                            <input type="text" @bind="activity.Name"
+                                class="appearance-none w-full border text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:border-gray-500" />
+                        </div>
+                        <div class="w-full px-3 md:w-1/4">
+                            <label class="block text-black-pearl-500 text-xs font-bold mb-2">
+                                Hours
+                            </label>
+                            <input type="number" @bind="activity.Estimate"
+                                class="appearance-none w-full border text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:border-gray-500" />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap m-6 px-3">
+                        <label class="block text-black-pearl-500 text-xs font-bold mb-2">
+                                Description
+                            </label>
+                        <textarea @bind="activity.Description" rows="3"
+                            class="appearance-none w-full border text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:border-gray-500" />
                     </div>
                 </EditForm>
             </div>
+            <div>
+                <button type="submit" class="bg-black-pearl-500 text-white rounded-md px-2 py-1 mb-4 mr-8 float-right" @onclick="() => AddActivity()">Save</button>
+            </div>
         </div>
     </div>
+}
 
-    @code {
+@code {
+    private bool isLoading = true;
+    private bool isModalOpen = false;
     private HubConnection hub;
 	private string teamName;
     private List<User> users = new();
@@ -151,6 +176,7 @@
         });
 
         await hub.StartAsync();
+        isLoading = false;
     }
 
     private async void UpdateWorkingWeek(int weekNumber, int year)
@@ -175,7 +201,16 @@
         await hub.SendAsync("SendTask", activity);
         await Http.PostAsJsonAsync("Planning/Activity", activity);
 
+        toggleModal();
         StateHasChanged();
+    }
+
+    private void toggleModal(User? user = null)
+    {
+        if (user != null)
+            activity = new Activity(user);
+
+        isModalOpen = !isModalOpen;
     }
 
     public void Dispose()
