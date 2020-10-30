@@ -1,12 +1,13 @@
-<div class="border bg-white m-2">
-    <div class="flex justify-between m-1">
-        <div class="mr-2">@Client</div>
+<div class="border border-l-4 bg-gray-100 m-2 max-w-xs">
+    <div class="flex justify-between p-2">
+        <div class="uppercase font-semibold mr-2">@Client</div>
         <div>@(Estimate)h</div>
     </div>
     @if (Extended)
     {
-        <div class="m-1">
-            <h6 class="">@Name</h6>
+        <div class="m-1 p-2">
+            <h6 class="text-lg">@Name</h6>
+            <div class="text-sm">@Description</div>
         </div>
     }
 </div>

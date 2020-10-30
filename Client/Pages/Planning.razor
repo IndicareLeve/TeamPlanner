@@ -36,36 +36,48 @@
 </header>
 
 <main>
-    <div class="grid grid-cols-7 p-2">
-        <div class="border-b-2 p-2 font-bold">Team</div>
-        <div class="border-b-2 p-2 font-bold">User</div>
-        @foreach (var day in currentWeek)
-        {
-            <div class="border-b-2 p-2 font-bold">@day.ToString("ddd dd MMM")</div>
-        }
-        @foreach (var team in users.GroupBy(u => u.Team))
-        {
-            <div class="row-span-@team.Count() border-b-2 p-2">@team.Key</div>
-            @foreach (var user in users.Where(u => u.Team == team.Key).OrderByDescending(u => u.IsTeamLeader).ThenBy(u => u.FullName))
-            {
-                <div class="flex space-x-2 items-center border-b-2 p-2">
-                    <div class="cursor-pointer" @onclick="() => toggleModal(user)">
-                        <img class="h-4" src="svg/plus.svg">
-                    </div>
-                    <div class=""> @user.FullName</div>
-                </div>
+    <table class="w-full p-2">
+        <tbody>
+            <tr class="border-b-2">
+                <td class=" p-2 font-bold">Team</td>
+                <td class="border-b-2 p-2 font-bold">User</td>
                 @foreach (var day in currentWeek)
                 {
-                    <div class="border-b-2 p-2">
-                        @foreach (var activity in activities.Where(a => a.DateTime.Date == day && a.User.Email == user.Email))
+                    <td class="border-b-2 p-2 font-bold text-center">@day.ToString("ddd dd MMM")</td>
+                }
+            </tr>
+            @foreach (var team in users.GroupBy(u => u.Team))
+            {
+                <tr>
+                    <td rowspan="@(team.Count() + 1)" class="border-b-2">
+                        @team.Key
+                    </td>
+                </tr>
+                @foreach (var user in users.Where(u => u.Team == team.Key).OrderByDescending(u => u.IsTeamLeader).ThenBy(u => u.FullName))
+                {
+                    <tr>
+                        <td class="border-b-2">
+                            <div class="flex space-x-2 items-center p-2">
+                                <div class=""> @user.FullName</div>
+                                <div class="cursor-pointer" @onclick="() => toggleModal(user)">
+                                    <img class="h-4" src="svg/plus.svg">
+                                </div>
+                            </div>  
+                        </td>
+                        @foreach (var day in currentWeek)
                         {
-                            <TaskCard Client="@activity.Client" Estimate="@activity.Estimate"/>
+                            <td class="border-b-2"> 
+                                    @foreach (var activity in activities.Where(a => a.DateTime.Date == day && a.User.Email == user.Email))
+                                    {
+                                        <TaskCard Client="@activity.Client" Estimate="@activity.Estimate"/>
+                                    }
+                            </td>
                         }
-                    </div>
+                    </tr>
                 }
             }
-        }
-    </div>
+        </tbody>
+    </table>
 </main>
 
 @if (isModalOpen)

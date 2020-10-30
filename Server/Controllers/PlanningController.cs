@@ -53,7 +53,12 @@ namespace TeamPlanner.Server.Controllers
             var startWeekFilter = Builders<Activity>.Filter.Gte(a => a.DateTime, weekStart);
 
             var cursor = await _db.GetCollection<Activity>("Activities").FindAsync(weekEndFilter & startWeekFilter);
-            return await cursor.ToListAsync();
+            var activities = await cursor.ToListAsync();
+
+            if (teamName != null)
+                return activities.Where(a => a.User.Team.Equals(teamName, StringComparison.InvariantCultureIgnoreCase));
+
+            return activities;
         }
     }
 }
